@@ -2,7 +2,18 @@ const { addonBuilder } = require('stremio-addon-sdk');
 const https = require('https');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer');
+let chrome = {};
+let puppeteer;
+
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  // running on the Vercel platform.
+  chrome = require('chrome-aws-lambda');
+  puppeteer = require('puppeteer-core');
+} else {
+  // running locally.
+  puppeteer = require('puppeteer');
+}
+
 const leagues = require('./resources/leagues');
 const jimp = require('jimp');
 
@@ -217,6 +228,7 @@ const fetchAndStoreVideos = object => {
 
 		// Grab the next url
 		const url2 = parseEmbed(source1.data);
+		
 
 		// This one requires javascript to load the data so use puppeteer to allow this to load
 		puppeteer
