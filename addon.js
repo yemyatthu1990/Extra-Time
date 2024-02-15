@@ -231,8 +231,13 @@ const fetchAndStoreVideos = object => {
 		
 
 		// This one requires javascript to load the data so use puppeteer to allow this to load
-		puppeteer
-			.launch()
+		puppeteer.launch({
+			args: [...chrome.args, '--hide-scrollbars', '--disable-web-security'],
+			defaultViewport: chrome.defaultViewport,
+			executablePath: await chrome.executablePath,
+			headless: true,
+			ignoreHTTPSErrors: true,
+		  })
 			.then(browser => browser.newPage())
 			.then(page => {
 				return page.goto(url2).then(function() {
