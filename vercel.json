@@ -1,5 +1,5 @@
 {"functions": {
-    "/*": {
+    "/addon.js": {
       "maxDuration": 60
     }
   }
