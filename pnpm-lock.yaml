@@ -14,6 +14,9 @@ dependencies:
   cheerio:
     specifier: ^1.0.0-rc.12
     version: 1.0.0-rc.12
+  follow-redirects:
+    specifier: ^1.15.5
+    version: 1.15.5
   jimp:
     specifier: ^0.22.10
     version: 0.22.10

@@ -7,14 +7,14 @@
 	},
 	"dependencies": {
 		"@sparticuz/chromium": "^119.0.2",
-		"puppeteer-core": "^21.5.1",
 		"axios": "^1.6.7",
 		"cheerio": "^1.0.0-rc.12",
+		"follow-redirects": "^1.15.5",
 		"jimp": "^0.22.10",
+		"puppeteer-core": "^21.5.1",
 		"stremio-addon-sdk": "1.6.10"
 	},
 	"engines": {
 		"node": "18"
-	  }
-
+	}
 }
