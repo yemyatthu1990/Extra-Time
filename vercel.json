@@ -1,5 +1,7 @@
 {
     "installCommand": "pnpm install",
+    "builds": [{ "src": "serverless.js", "use": "@now/node" }],
+    "routes": [{ "src": "/.*", "dest": "/serverless.js" }],
     "functions": {
     "/*.js": {
       "maxDuration": 60
