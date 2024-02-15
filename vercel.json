@@ -1,4 +1,6 @@
-{"functions": {
+{
+    "installCommand": "pnpm install",
+    "functions": {
     "/*.js": {
       "maxDuration": 60
     }
