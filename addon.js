@@ -2,8 +2,6 @@ const { addonBuilder } = require('stremio-addon-sdk');
 const https = require('https');
 const axios = require('axios');
 const cheerio = require('cheerio');
-let chrome = {};
-let puppeteer;
 
 
 const chrome = require('@sparticuz/chromium')
