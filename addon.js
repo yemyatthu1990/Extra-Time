@@ -2,13 +2,11 @@ const { addonBuilder } = require('stremio-addon-sdk');
 const https = require('https');
 const axios = require('axios');
 const cheerio = require('cheerio');
-
-
-const chrome = require('@sparticuz/chromium')
-const puppeteer = require('puppeteer-core')
-
 const leagues = require('./resources/leagues');
 const jimp = require('jimp');
+const { url } = require('inspector');
+const { listenerCount } = require('process');
+const { link } = require('fs');
 
 const endpoint = 'https://www.scorebat.com/video-api/v1/';
 const genres = [
@@ -156,6 +154,7 @@ const toMeta = async (object, blur) => {
 			title: video.title,
 			publishedAt: new Date(object.date),
 			released: object.date,
+			thumbnail: object.thumbnail,
 			available: true
 		}))
 	};
@@ -201,6 +200,25 @@ const parseEmbed = embed => {
 	const $ = cheerio.load(embed);
 	return $('iframe').attr('src') || $('a').attr('href');
 };
+/** extract link from url */
+const extractLinks = async (url) => {
+	try {
+	  // Fetch the content of the webpage
+	  const response = await axios.get(url);
+	  const data = response.data;
+	  const youtubeIdPattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)?([a-zA-Z0-9_-]{11})/;
+        
+	  const match = data.match(youtubeIdPattern)
+	  if (match && match[1]) {
+	  // Return the array of links
+	  return match[1];
+	  } 
+	  return [];
+	} catch (error) {
+	  console.error('Error fetching or parsing the webpage:', error);
+	  return [];
+	}
+  };
 
 /**
  * Fetches the youtube id of the video by scraping it from the source code
@@ -216,40 +234,16 @@ const fetchAndStoreVideos = object => {
 		if (youtubeDict[videoId]) return;
 
 		// The youtube id is buried within a few urls so let's get the first one and read it's source
+	
 		const url1 = parseEmbed(video.embed);
-		const source1 = await axios.get(url1);
-
-		// Grab the next url
-		const url2 = parseEmbed(source1.data);
 		
-
-		// This one requires javascript to load the data so use puppeteer to allow this to load
-		puppeteer.launch({
-			args: [...chrome.args, '--hide-scrollbars', '--disable-web-security'],
-			defaultViewport: chrome.defaultViewport,
-			executablePath: await chrome.executablePath,
-			headless: true,
-			ignoreHTTPSErrors: true,
-		  })
-			.then(browser => browser.newPage())
-			.then(page => {
-				return page.goto(url2).then(function() {
-					return page.content();
-				});
-			})
-			.then(html => {
-				// Grab the youtube url from this page's html
-				const url3 = parseEmbed(html);
-
-				// It sometimes comes as an emdedded url and other times as the direct watch url
-				let youtubeId = url3.includes('embed/')
-					? url3.split('embed/')[1].split('?')[0]
-					: url3.split('watch?v=')[1];
-
-				// Cache the youtube id so we don't need to refetch it
+		extractLinks(url1).then(youtubeId =>{
+			console.error('Extracted Links', youtubeId);
+			if (youtubeId)  {
 				youtubeDict[videoId] = youtubeId;
-			})
-			.catch(console.error);
+			}
+		});
+		// This one requires javascript to load the data so use puppeteer to allow this to load
 	});
 };
 
@@ -298,7 +292,10 @@ builder.defineStreamHandler(({ id }) => {
 	const resolveWithYT = async () => {
 		if (youtubeDict[id]) {
 			// Resolve if youtube id has already been fetched
-			return Promise.resolve({ streams: [{ ytId: youtubeDict[id] }] });
+			console.log(youtubeDict[id]);
+			var ytId = youtubeDict[id];
+			var thumbnailLk = "https://i.ytimg.com/vi/"+ytId+"/hqdefault.jpg" ;
+			return Promise.resolve({ streams: [{ ytId: ytId, thumbnail: thumbnailLk}] });
 		} else {
 			// Wait and retry to see if youtube id has now been fetched
 			await sleep(100);
